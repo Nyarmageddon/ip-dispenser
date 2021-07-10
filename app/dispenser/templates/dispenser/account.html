@@ -1,0 +1,15 @@
+{% extends "dispenser/base.html" %}
+
+
+{% block header %}
+  <h2>Мои IP-адреса</h2>
+{% endblock header %}
+
+{% block content %}
+  {% for ip in ip_addresses %}
+    {{ ip }} (выдан {{ ip.claimed_at }})
+    <br>
+  {% empty %}
+    У вас пока нет IP-адресов.
+  {% endfor %}
+{% endblock content %}

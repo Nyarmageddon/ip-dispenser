@@ -1,0 +1,4 @@
+__pycache__
+.vscode
+settings_local.py
+db.sqlite3
