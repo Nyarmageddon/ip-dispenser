@@ -14,9 +14,13 @@ class IPSubnet(models.Model):
     class Meta:
         verbose_name = "Подсеть IP"
         verbose_name_plural = "Подсети IP"
+        ordering = ["address"]
 
     def __str__(self):
         return f"Подсеть: {self.address}/{self.mask}"
+
+    def __len__(self):
+        return self.addresses.count()
 
     @property
     def value(self):

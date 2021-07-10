@@ -26,5 +26,10 @@ urlpatterns = [
         "account/",
         views.UserAccountView.as_view(),
         name="account",
-    )
+    ),
+    path(
+        "ip/<int:ip_id>/delete/",
+        views.delete_ip,
+        name="delete_ip",
+    ),
 ]
