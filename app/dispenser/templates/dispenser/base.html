@@ -1,7 +1,12 @@
 <a href="{% url 'dispenser:main' %}">На главную</a>
-<a href="{% url 'dispenser:account' %}">Мой аккаунт</a>
-<a href="{% url 'dispenser:login' %}">Войти</a>
-<a href="{% url 'dispenser:logout' %}">Выйти</a>
+
+{% if user.is_authenticated %}
+  <b>{{ user.username }}</b>
+  <a href="{% url 'dispenser:account' %}">Мой аккаунт</a>
+  <a href="{% url 'dispenser:logout' %}">Выйти</a>
+{% else %}
+  <a href="{% url 'dispenser:login' %}">Войти</a>
+{% endif %}
 
 {% block header %}{% endblock header %}
 {% block content %}{% endblock content %}
