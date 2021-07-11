@@ -1,0 +1,15 @@
+{% extends "dispenser/base.html" %}
+
+{% block header %}
+  <h2>Подсети IP-адресов</h2>
+{% endblock header %}
+
+{% block content %}
+  {% for network in ip_networks %}
+    {{ network }}
+    <a href="{% url 'dispenser:delete_subnet' network.id %}">Удалить</a>
+    <br>
+  {% empty %}
+    Подсети ещё не созданы.
+  {% endfor %}
+{% endblock content %}

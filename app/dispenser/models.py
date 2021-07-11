@@ -1,7 +1,7 @@
 from ipaddress import ip_address, ip_network
 
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 
 
 class IPSubnet(models.Model):
@@ -17,7 +17,7 @@ class IPSubnet(models.Model):
         ordering = ["address"]
 
     def __str__(self):
-        return f"Подсеть: {self.address}/{self.mask}"
+        return f"{self.address}/{self.mask}"
 
     def __len__(self):
         return self.addresses.count()
@@ -32,7 +32,7 @@ class IPAddress(models.Model):
 
     address = models.GenericIPAddressField()
     claimed_at = models.DateTimeField(
-        auto_now_add=True,
+        auto_now=True,
         verbose_name="дата выдачи",
     )
     subnet = models.ForeignKey(
@@ -48,6 +48,9 @@ class IPAddress(models.Model):
         related_name="ip_addresses",
     )
 
+    class AlreadyClaimed(Exception):
+        pass
+
     class Meta:
         verbose_name = "IP-адрес"
         verbose_name_plural = "IP-адреса"
@@ -55,5 +58,32 @@ class IPAddress(models.Model):
     def __str__(self):
         return f"{self.address}"
 
+    @property
     def value(self):
         return ip_address(self.address)
+
+    @property
+    def claimed(self):
+        return (self.owner is not None)
+
+    def query_set(self):
+        """QuerySet, выбирающий этого пользователя."""
+        self.__class__.objects.filter(id=self.id)
+
+    @transaction.atomic
+    def claim(self, new_owner):
+        """Выдать свободный IP-адрес пользователю.
+           Передача между пользователями выдаёт ошибку.
+        """
+        address = self.query_set.select_for_update().get()
+
+        if address.claimed:
+            raise IPAddress.AlreadyClaimed("IP-адрес уже занят.")
+
+        self.owner = new_owner
+        self.save()
+
+    def abandon(self):
+        """Возвращает адрес в пул свободных."""
+        self.owner = None
+        self.save()

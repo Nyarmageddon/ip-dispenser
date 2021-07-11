@@ -1,3 +1,4 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import path
 from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
@@ -16,6 +17,16 @@ urlpatterns = [
         "login/",
         auth_views.LoginView.as_view(template_name="dispenser/login.html",),
         name="login",
+    ),
+    path(
+        "dashboard/",
+        staff_member_required(views.AdminDashboardView.as_view()),
+        name="admin_main"
+    ),
+    path(
+        "subnet/<int:subnet_id>/delete/",
+        staff_member_required(views.delete_subnet),
+        name="delete_subnet",
     ),
     path(
         "logout/",
