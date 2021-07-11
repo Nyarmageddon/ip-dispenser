@@ -6,7 +6,7 @@
 
 {% block content %}
   {% for network in ip_networks %}
-    {{ network }}
+    <a href="{% url 'dashboard:subnet' network.id %}">{{ network }}</a>
     <a href="{% url 'dashboard:delete_subnet' network.id %}">Удалить</a>
     <br>
   {% empty %}

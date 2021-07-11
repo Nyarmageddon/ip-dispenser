@@ -12,6 +12,11 @@ urlpatterns = [
         name="main"
     ),
     path(
+        "subnet/<int:subnet_id>/",
+        staff_member_required(views.AdminSubnetView.as_view()),
+        name="subnet",
+    ),
+    path(
         "subnet/<int:subnet_id>/delete/",
         staff_member_required(views.delete_subnet),
         name="delete_subnet",
