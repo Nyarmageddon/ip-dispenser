@@ -19,17 +19,17 @@ class AdminDashboardView(ListView):
 class AdminSubnetView(ListView):
     """Страница администратора для просмотра выданных IP."""
 
-    model = IPAddress
-
     template_name = "dashboard/subnet.html"
     context_object_name = "ip_addresses"
 
     def get_queryset(self):
-        return IPAddress.objects.filter(
-            subnet=self.kwargs["subnet_id"]
-        ).order_by(
+        return IPSubnet.objects.all().get(
+            id=self.kwargs["subnet_id"]
+        ).addresses.order_by(
             "-claimed_at", "owner"
-        ).select_related()
+        ).exclude(
+            owner=None
+        ).select_related("owner")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
