@@ -21,5 +21,7 @@
     У вас пока нет IP-адресов.
   {% endfor %}
 
-  <a href="{% url 'dispenser:get_ip' %}">Получить IP-адрес</a>
+  <a href="{% url 'dispenser:get_ip' 'v4' %}">Получить IPv4-адрес</a>
+  <br>
+  <a href="{% url 'dispenser:get_ip' 'v6' %}">Получить IPv6-адрес</a>
 {% endblock content %}

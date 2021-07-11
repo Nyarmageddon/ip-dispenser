@@ -30,10 +30,10 @@ class UserAccountView(LoginRequiredMixin, ListView):
 
 
 @login_required(login_url="dispenser:login")
-def get_ip(request):
+def get_ip(request, protocol):
     """Выдаёт свободный IP-адрес пользователю."""
-    subnet = IPSubnet.objects.get_network_with_ips()
     try:
+        subnet = IPSubnet.objects.get_network_with_ips(protocol)
         new_ip = subnet.get_free_ip(request.user)
     except IPSubnet.NoFreeAddresses:
         new_ip = None

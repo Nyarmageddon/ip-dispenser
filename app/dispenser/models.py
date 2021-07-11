@@ -1,24 +1,34 @@
 from ipaddress import ip_address, ip_network
 
 from django.contrib.auth.models import User
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 
 
 class SubnetManager(models.Manager):
     """Расширенный функционал для управления подсетями."""
 
-    def get_network_with_ips(self):
+    def get_network_with_ips(self, protocol):
         """Выдаёт подсеть для получения IP-адреса."""
         # Здесь можно добавить условия для выдачи подсети.
-        return self.get_queryset().order_by("?").first()
+        networks = self.get_queryset().filter(protocol=protocol).order_by("?")
+        for network in networks:
+            if len(network) < network.capacity:
+                return network
+        raise IPSubnet.NoFreeAddresses("Закончились свободные подсети.")
 
 
 class IPSubnet(models.Model):
     """Обозначает подсеть из IP-адресов."""
 
+    PROTOCOLS = (
+        ("v4", "IPv4"),
+        ("v6", "IPv6"),
+    )
+
     address = models.GenericIPAddressField(unique=True)
     gateway = models.GenericIPAddressField(blank=True, null=True)
     mask = models.IntegerField()
+    protocol = models.CharField(max_length=2, choices=PROTOCOLS)
 
     objects = SubnetManager()
 
@@ -34,11 +44,17 @@ class IPSubnet(models.Model):
         return f"{self.address}/{self.mask}"
 
     def __len__(self):
-        return self.addresses.count()
+        return self.addresses.exclude(owner=None).count()
+
+    @property
+    def capacity(self):
+        """Максимально возможное число адресов в этой сети."""
+        max_bits = 32 if self.protocol == "v4" else 128
+        return 2**(max_bits - self.mask) - 1
 
     @property
     def value(self):
-        return ip_network(self.address)
+        return ip_network(str(self))
 
     def get_free_ip(self, new_owner):
         """Выдаёт случайный незанятый IP из этой сети."""
@@ -48,8 +64,30 @@ class IPSubnet(models.Model):
             try:
                 free_ip.claim(new_owner)
             except IPAddress.AlreadyClaimed:
-                raise IPSubnet.NoFreeAddresses("Нет свободных IP.")
-        else:
+                pass
+
+        if free_ip:
+            return free_ip
+
+        # Пытаемся создать новый IP-адрес.
+        existing = set(
+            ip
+            for values in self.addresses.values_list("address")
+            for ip in values
+        )
+
+        for host in self.value.hosts():
+            if host.compressed != self.gateway and host.compressed not in existing:
+                break
+
+        free_ip = IPAddress(
+            address=host.compressed,
+            owner=new_owner,
+            subnet=self,
+        )
+        try:
+            free_ip.save()
+        except IntegrityError:
             raise IPSubnet.NoFreeAddresses("Нет свободных IP.")
         return free_ip
 

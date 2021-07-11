@@ -28,7 +28,7 @@ urlpatterns = [
         name="account",
     ),
     path(
-        "get_ip/",
+        "get_ip/<protocol>/",
         views.get_ip,
         name="get_ip",
     ),
