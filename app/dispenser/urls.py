@@ -19,16 +19,6 @@ urlpatterns = [
         name="login",
     ),
     path(
-        "dashboard/",
-        staff_member_required(views.AdminDashboardView.as_view()),
-        name="admin_main"
-    ),
-    path(
-        "subnet/<int:subnet_id>/delete/",
-        staff_member_required(views.delete_subnet),
-        name="delete_subnet",
-    ),
-    path(
         "logout/",
         auth_views.LogoutView.as_view(),
         name="logout",

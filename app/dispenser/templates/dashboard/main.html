@@ -7,7 +7,7 @@
 {% block content %}
   {% for network in ip_networks %}
     {{ network }}
-    <a href="{% url 'dispenser:delete_subnet' network.id %}">Удалить</a>
+    <a href="{% url 'dashboard:delete_subnet' network.id %}">Удалить</a>
     <br>
   {% empty %}
     Подсети ещё не созданы.
