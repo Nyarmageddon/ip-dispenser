@@ -24,6 +24,8 @@ class UserAccountView(LoginRequiredMixin, ListView):
     template_name = "dispenser/account.html"
     context_object_name = "ip_addresses"
 
+    paginate_by = 10
+
     def get_queryset(self):
         addresses = IPAddress.objects.filter(owner_id=self.request.user)
         return addresses.order_by("-claimed_at")
@@ -57,4 +59,5 @@ def delete_ip(request: HttpRequest, ip_id: int):
         raise Http404()
 
     address.abandon()
+    messages.info(request, f"{address} удалён")
     return HttpResponseRedirect(reverse("dispenser:account"))
