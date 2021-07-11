@@ -7,7 +7,7 @@ from django.db import models, transaction
 class SubnetManager(models.Manager):
     """Расширенный функционал для управления подсетями."""
 
-    def get_one_with_ips(self):
+    def get_network_with_ips(self):
         """Выдаёт подсеть для получения IP-адреса."""
         # Здесь можно добавить условия для выдачи подсети.
         return self.get_queryset().order_by("?").first()
@@ -40,12 +40,15 @@ class IPSubnet(models.Model):
     def value(self):
         return ip_network(self.address)
 
-    def get_ip(self, new_owner):
+    def get_free_ip(self, new_owner):
         """Выдаёт случайный незанятый IP из этой сети."""
         # Выдаёт IP-адрес, уже добавленный в базу, без текущего владельца
         free_ip = self.addresses.filter(owner=None).order_by("?").first()
         if free_ip:
-            free_ip.claim(new_owner)
+            try:
+                free_ip.claim(new_owner)
+            except IPAddress.AlreadyClaimed:
+                raise IPSubnet.NoFreeAddresses("Нет свободных IP.")
         else:
             raise IPSubnet.NoFreeAddresses("Нет свободных IP.")
         return free_ip

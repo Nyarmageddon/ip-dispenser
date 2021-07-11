@@ -6,6 +6,13 @@
 {% endblock header %}
 
 {% block content %}
+  {% if messages %}
+    {% for message in messages %}
+      <b>{{ message }}</b>
+    {% endfor %}
+    <br>
+  {% endif %}
+
   {% for ip in ip_addresses %}
     {{ ip }} (выдан {{ ip.claimed_at }})
     <a href="{% url 'dispenser:delete_ip' ip.id %}">Удалить IP</a>

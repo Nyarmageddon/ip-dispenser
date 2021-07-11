@@ -1,6 +1,7 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 from django.http.request import HttpRequest
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import HttpResponse
@@ -31,8 +32,16 @@ class UserAccountView(LoginRequiredMixin, ListView):
 @login_required(login_url="dispenser:login")
 def get_ip(request):
     """Выдаёт свободный IP-адрес пользователю."""
-    subnet = IPSubnet.objects.get_one_with_ips()
-    new_ip = subnet.get_ip(request.user)
+    subnet = IPSubnet.objects.get_network_with_ips()
+    try:
+        new_ip = subnet.get_free_ip(request.user)
+    except IPSubnet.NoFreeAddresses:
+        new_ip = None
+
+    if new_ip:
+        messages.info(request, f"Выдан IP-адрес {new_ip}")
+    else:
+        messages.error(request, "Не удалось получить IP-адрес")
     return HttpResponseRedirect(reverse("dispenser:account"))
 
 
