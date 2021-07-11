@@ -17,8 +17,18 @@ urlpatterns = [
         name="subnet",
     ),
     path(
+        "user/<int:user_id>/",
+        staff_member_required(views.UserIPOverview.as_view()),
+        name="user_overview",
+    ),
+    path(
         "subnet/<int:subnet_id>/delete/",
-        staff_member_required(views.delete_subnet),
+        views.delete_subnet,
         name="delete_subnet",
+    ),
+    path(
+        "ip/<int:ip_id>/delete/",
+        views.delete_ip,
+        name="delete_ip"
     ),
 ]

@@ -2,15 +2,19 @@
 
 
 {% block header %}
-  <h2>IP-адреса {{ network }}</h2>
+  <h2>IP-адреса {{ network }}{{ username }}</h2>
 {% endblock header %}
 
 {% block content %}
   {% for ip in ip_addresses %}
     {{ ip }}
     (выдан {{ ip.claimed_at }})
-    Владелец {{ ip.owner.username }}
-    <a href="{% url 'dispenser:delete_ip' ip.id %}">Удалить IP</a>
+
+    Владелец <a href="{% url 'dashboard:user_overview' ip.owner.id %}">
+      {{ ip.owner.username }}
+    </a>
+
+    <a href="{% url 'dashboard:delete_ip' ip.id %}">Удалить IP</a>
     <br>
   {% empty %}
     В этой сети нет выданных IP.

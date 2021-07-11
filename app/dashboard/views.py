@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.request import HttpRequest
 from django.http.response import Http404, HttpResponseForbidden, HttpResponseRedirect
@@ -38,6 +40,47 @@ class AdminSubnetView(ListView):
         return context
 
 
+class UserIPOverview(ListView):
+    """Страница для просмотра IP-адресов пользователя."""
+
+    template_name = "dashboard/subnet.html"
+    context_object_name = "ip_addresses"
+
+    def get_queryset(self):
+        return IPAddress.objects.filter(
+            owner_id=self.kwargs["user_id"]
+        ).order_by(
+            "-subnet", "-claimed_at",
+        ).select_related("subnet")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        username = User.objects.get(id=self.kwargs["user_id"]).username
+        context["username"] = username
+        return context
+
+
+@staff_member_required
+def delete_ip(request, ip_id):
+    """Удаление IP-адреса администратором."""
+    try:
+        address = IPAddress.objects.select_related("subnet").get(id=ip_id)
+    except ObjectDoesNotExist:
+        raise Http404()
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden
+
+    address.abandon()
+
+    page_back = reverse(
+        "dashboard:subnet",
+        args=[address.subnet_id],
+    )
+    return HttpResponseRedirect(page_back)
+
+
+@staff_member_required
 def delete_subnet(request: HttpRequest, subnet_id: int):
     """Удаление подсети администратором."""
     try:
