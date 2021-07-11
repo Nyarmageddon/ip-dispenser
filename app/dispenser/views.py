@@ -1,7 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest
-from django.http.response import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import HttpResponse
 from django.urls import reverse
 from django.views.generic import ListView
@@ -27,6 +28,15 @@ class UserAccountView(LoginRequiredMixin, ListView):
         return addresses.order_by("-claimed_at")
 
 
+@login_required(login_url="dispenser:login")
+def get_ip(request):
+    """Выдаёт свободный IP-адрес пользователю."""
+    subnet = IPSubnet.objects.get_one_with_ips()
+    new_ip = subnet.get_ip(request.user)
+    return HttpResponseRedirect(reverse("dispenser:account"))
+
+
+@login_required(login_url="dispenser:login")
 def delete_ip(request: HttpRequest, ip_id: int):
     """Удаляет IP-адрес, принадлежащий пользователю, из базы."""
     try:

@@ -13,4 +13,6 @@
   {% empty %}
     У вас пока нет IP-адресов.
   {% endfor %}
+
+  <a href="{% url 'dispenser:get_ip' %}">Получить IP-адрес</a>
 {% endblock content %}

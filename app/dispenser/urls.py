@@ -1,4 +1,3 @@
-from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import path
 from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
@@ -27,6 +26,11 @@ urlpatterns = [
         "account/",
         views.UserAccountView.as_view(),
         name="account",
+    ),
+    path(
+        "get_ip/",
+        views.get_ip,
+        name="get_ip",
     ),
     path(
         "ip/<int:ip_id>/delete/",
