@@ -1,5 +1,6 @@
 from ipaddress import ip_address, ip_network
 
+from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models, transaction, IntegrityError
 
@@ -25,10 +26,26 @@ class IPSubnet(models.Model):
         ("v6", "IPv6"),
     )
 
-    address = models.GenericIPAddressField(unique=True)
-    gateway = models.GenericIPAddressField(blank=True, null=True)
-    mask = models.IntegerField()
-    protocol = models.CharField(max_length=2, choices=PROTOCOLS)
+    address = models.GenericIPAddressField(
+        unique=True,
+        verbose_name="адрес подсети",
+    )
+
+    gateway = models.GenericIPAddressField(
+        blank=True,
+        null=True,
+        verbose_name="адрес шлюза",
+    )
+
+    mask = models.IntegerField(
+        verbose_name="маска подсети",
+    )
+
+    protocol = models.CharField(
+        max_length=2,
+        choices=PROTOCOLS,
+        verbose_name="протокол",
+    )
 
     objects = SubnetManager()
 
@@ -43,10 +60,12 @@ class IPSubnet(models.Model):
     def __str__(self):
         return f"{self.address}/{self.mask}"
 
+    @admin.display(description="выдано адресов")
     def __len__(self):
         return self.addresses.exclude(owner=None).count()
 
     @property
+    @admin.display(description="всего адресов", ordering="mask")
     def capacity(self):
         """Максимально возможное число адресов в этой сети."""
         max_bits = 32 if self.protocol == "v4" else 128
@@ -95,22 +114,27 @@ class IPSubnet(models.Model):
 class IPAddress(models.Model):
     """Обозначает один конкретный IP-адрес."""
 
-    address = models.GenericIPAddressField(unique=True)
+    address = models.GenericIPAddressField(unique=True, verbose_name="адрес")
+
     claimed_at = models.DateTimeField(
         auto_now=True,
         verbose_name="дата выдачи",
     )
+
     subnet = models.ForeignKey(
         IPSubnet,
         on_delete=models.CASCADE,
         related_name="addresses",
+        verbose_name="подсеть",
     )
+
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         blank=True,
         null=True,
         related_name="ip_addresses",
+        verbose_name="владелец",
     )
 
     class AlreadyClaimed(Exception):
@@ -136,7 +160,7 @@ class IPAddress(models.Model):
         return self.__class__.objects.filter(id=self.id)
 
     @transaction.atomic
-    def claim(self, new_owner):
+    def claim(self, owner):
         """Выдать свободный IP-адрес пользователю.
            Передача между пользователями выдаёт ошибку.
         """
@@ -145,7 +169,7 @@ class IPAddress(models.Model):
         if address.claimed:
             raise IPAddress.AlreadyClaimed("IP-адрес уже занят.")
 
-        address.owner = new_owner
+        address.owner = owner
         address.save()
 
     def abandon(self):
