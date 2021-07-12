@@ -2,9 +2,11 @@ from itertools import chain as flatten
 
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models, transaction, IntegrityError
 
-from .ip_subnets import get_available_host, network_capacity
+import dispenser.ip_subnets as ip_util
 
 
 class SubnetManager(models.Manager):
@@ -34,13 +36,12 @@ class IPSubnet(models.Model):
     )
 
     gateway = models.GenericIPAddressField(
-        blank=True,
-        null=True,
         verbose_name="адрес шлюза",
     )
 
     mask = models.IntegerField(
         verbose_name="маска подсети",
+        validators=[MinValueValidator(0), MaxValueValidator(128)],
     )
 
     protocol = models.CharField(
@@ -78,7 +79,38 @@ class IPSubnet(models.Model):
     @admin.display(description="всего адресов", ordering="mask")
     def capacity(self):
         """Максимально возможное число адресов в этой сети."""
-        return network_capacity(str(self))
+        return ip_util.network_capacity(str(self))
+
+    def clean(self):
+        # Проверка соответствия сети и маски.
+        if not ip_util.network_valid(str(self)):
+            raise ValidationError("Введена некорректная подсеть.")
+
+        # Запрет на маленькие подсети.
+        if self.capacity <= 0:
+            raise ValidationError("Из этой подсети не получится выдать IP.")
+
+        # Проверка принадлежности шлюза к сети.
+        if not ip_util.address_in_net(self.gateway, str(self)):
+            raise ValidationError("Шлюз не принадлежит этой подсети.")
+
+        # Проверка, что подсеть не является подсетью другой сети.
+        other_nets = IPSubnet.objects.filter(
+            protocol=self.protocol
+        ).exclude(id=self.id)
+
+        if any(ip_util.subnet_of(str(self), str(other))
+               for other in other_nets
+               ):
+            raise ValidationError("Подсеть принадлежит другой сети.")
+
+        # Ни одна из сетей не входит во вновь добавленную.
+        if any(ip_util.subnet_of(str(other), str(self))
+               for other in other_nets
+               ):
+            raise ValidationError("Для этой сети уже есть подсети.")
+
+        return super().clean()
 
     def get_free_ip(self, new_owner):
         """Выдаёт случайный незанятый IP из этой сети."""
@@ -96,7 +128,7 @@ class IPSubnet(models.Model):
         # Пытаемся создать новый IP-адрес.
         existing = flatten.from_iterable(self.addresses.values_list("address"))
 
-        hostname = get_available_host(
+        hostname = ip_util.get_available_host(
             str(self),
             gateway=self.gateway,
             existing=existing

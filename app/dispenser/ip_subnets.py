@@ -1,6 +1,6 @@
 """Вспомогательный модуль для математики с IP-адресами."""
 
-from ipaddress import ip_network
+from ipaddress import ip_address, ip_network
 from typing import Iterable
 
 
@@ -27,6 +27,25 @@ def get_available_host(network: str, *,
 def network_capacity(network: str) -> int:
     """Количество доступных адресов в подсети IPv4 или IPv6."""
     net = ip_network(network)
-    # 0-й адрес, шлюз и Broadcast-адрес IPv4
+    # Нулевой адрес, шлюз; Broadcast-адрес для IPv4
     reserved = 3 if net.version == 4 else 2
     return net.num_addresses - reserved
+
+
+def network_valid(network: str) -> bool:
+    """Является ли сеть валидной?"""
+    try:
+        ip_network(network)
+    except ValueError:
+        return False
+    return True
+
+
+def subnet_of(network: str, other: str) -> bool:
+    """Является ли первая сеть подсетью второй?"""
+    return ip_network(network).subnet_of(ip_network(other))
+
+
+def address_in_net(address: str, network: str) -> bool:
+    """Находится ли IP-адрес в этой сети"""
+    return address in all_hosts(network)
