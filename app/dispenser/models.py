@@ -1,8 +1,10 @@
-from ipaddress import ip_address, ip_network
+from itertools import chain as flatten
 
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models, transaction, IntegrityError
+
+from .ip_subnets import get_available_host, network_capacity
 
 
 class SubnetManager(models.Manager):
@@ -62,23 +64,26 @@ class IPSubnet(models.Model):
 
     @admin.display(description="выдано адресов")
     def __len__(self):
-        return self.addresses.exclude(owner=None).count()
+        return self.claimed_addresses().count()
+
+    def claimed_addresses(self):
+        """Занятые IP-адреса в этой подсети."""
+        return self.addresses.exclude(owner=None)
+
+    def unclaimed_addresses(self):
+        """Незанятые IP-адреса в этой подсети."""
+        return self.addresses.filter(owner=None)
 
     @property
     @admin.display(description="всего адресов", ordering="mask")
     def capacity(self):
         """Максимально возможное число адресов в этой сети."""
-        max_bits = 32 if self.protocol == "v4" else 128
-        return 2**(max_bits - self.mask) - 1
-
-    @property
-    def value(self):
-        return ip_network(str(self))
+        return network_capacity(str(self))
 
     def get_free_ip(self, new_owner):
         """Выдаёт случайный незанятый IP из этой сети."""
         # Выдаёт IP-адрес, уже добавленный в базу, без текущего владельца
-        free_ip = self.addresses.filter(owner=None).order_by("?").first()
+        free_ip = self.unclaimed_addresses().order_by("?").first()
         if free_ip:
             try:
                 free_ip.claim(new_owner)
@@ -89,21 +94,19 @@ class IPSubnet(models.Model):
             return free_ip
 
         # Пытаемся создать новый IP-адрес.
-        existing = set(
-            ip
-            for values in self.addresses.values_list("address")
-            for ip in values
+        existing = flatten.from_iterable(self.addresses.values_list("address"))
+
+        hostname = get_available_host(
+            str(self),
+            gateway=self.gateway,
+            existing=existing
         )
-
-        for host in self.value.hosts():
-            if host.compressed != self.gateway and host.compressed not in existing:
-                break
-
         free_ip = IPAddress(
-            address=host.compressed,
+            address=hostname,
             owner=new_owner,
             subnet=self,
         )
+
         try:
             free_ip.save()
         except IntegrityError:
@@ -146,10 +149,6 @@ class IPAddress(models.Model):
 
     def __str__(self):
         return f"{self.address}"
-
-    @property
-    def value(self):
-        return ip_address(self.address)
 
     @property
     def claimed(self):
