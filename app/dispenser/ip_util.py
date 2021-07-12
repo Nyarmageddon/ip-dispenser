@@ -1,6 +1,6 @@
 """Вспомогательный модуль для математики с IP-адресами."""
 
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_network
 from typing import Iterable
 
 

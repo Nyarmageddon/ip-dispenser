@@ -98,6 +98,12 @@ class IPSubnet(models.Model):
         if not ip_util.address_in_net(self.gateway, str(self)):
             raise ValidationError("Шлюз не принадлежит этой подсети.")
 
+        # Проверка принадлежности адресов к сети.
+        if not all(ip_util.address_in_net(str(ip), str(self))
+                   for ip in self.addresses.all()
+                   ):
+            raise ValidationError("В сети есть посторонние IP-адреса.")
+
         # Проверка, что подсеть не является подсетью другой сети.
         other_nets = IPSubnet.objects.filter(
             protocol=self.protocol
