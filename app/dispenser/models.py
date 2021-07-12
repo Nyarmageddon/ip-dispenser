@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models, transaction, IntegrityError
 
-import dispenser.ip_subnets as ip_util
+import dispenser.ip_util as ip_util
 
 
 class SubnetManager(models.Manager):
