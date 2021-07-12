@@ -49,3 +49,8 @@ def subnet_of(network: str, other: str) -> bool:
 def address_in_net(address: str, network: str) -> bool:
     """Находится ли IP-адрес в этой сети"""
     return address in all_hosts(network)
+
+
+def network_protocol(network: str) -> str:
+    """Версия протокола: IPv4 или IPv6"""
+    return f"v{ip_network(network).version}"

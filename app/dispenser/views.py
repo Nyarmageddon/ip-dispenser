@@ -4,16 +4,10 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.request import HttpRequest
 from django.http.response import Http404, HttpResponseRedirect
-from django.shortcuts import HttpResponse
 from django.urls import reverse
 from django.views.generic import ListView
 
 from .models import IPAddress, IPSubnet
-
-
-def dummy(*args):
-    """Test."""
-    return HttpResponse("It works!")
 
 
 class UserAccountView(LoginRequiredMixin, ListView):

@@ -3,6 +3,9 @@ from django.contrib import admin
 from dispenser.models import IPAddress, IPSubnet
 
 
+admin.site.site_header = "IP Dispenser"
+
+
 @admin.register(IPAddress)
 class IPAddressAdmin(admin.ModelAdmin):
     """Интерфейс управления IP-адресами в админке."""

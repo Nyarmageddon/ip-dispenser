@@ -86,6 +86,10 @@ class IPSubnet(models.Model):
         if not ip_util.network_valid(str(self)):
             raise ValidationError("Введена некорректная подсеть.")
 
+        # Проверка версии протокола.
+        if ip_util.network_protocol(str(self)) != self.protocol:
+            raise ValidationError("Указана неправильная версия IP.")
+
         # Запрет на маленькие подсети.
         if self.capacity <= 0:
             raise ValidationError("Из этой подсети не получится выдать IP.")
