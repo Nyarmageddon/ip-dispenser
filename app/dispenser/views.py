@@ -37,7 +37,9 @@ def get_ip(request, protocol):
     if new_ip:
         messages.info(request, f"Выдан IP-адрес {new_ip}")
     else:
-        messages.error(request, "Не удалось получить IP-адрес")
+        messages.error(
+            request,
+            "Не удалось получить IP-адрес. Попробуйте повторить попытку позже")
     return HttpResponseRedirect(reverse("dispenser:account"))
 
 

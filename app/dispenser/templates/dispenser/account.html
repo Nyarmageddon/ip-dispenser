@@ -1,5 +1,5 @@
 {% extends "dispenser/base.html" %}
-
+{% load django_bootstrap5 %}
 
 {% block header %}
   <h2>Мои IP-адреса</h2>
@@ -7,40 +7,38 @@
 
 {% block content %}
   {% if messages %}
-    {% for message in messages %}
-      <b>{{ message }}</b>
-    {% endfor %}
-    <br>
+    {% bootstrap_messages %}
   {% endif %}
 
-  {% for ip in ip_addresses %}
-    {{ ip }} (выдан {{ ip.claimed_at }})
-    <a href="{% url 'dispenser:delete_ip' ip.id %}">Удалить IP</a>
-    <br>
-  {% empty %}
-    У вас пока нет IP-адресов.
-  {% endfor %}
+  <div class="container">
+    {% url 'dispenser:get_ip' 'v4' as ipv4 %}
+    {% bootstrap_button "Получить IPv4-адрес" button_type="link" button_class="btn-outline-primary" href=ipv4 %}
 
-  <div class="pagination">
-    <span class="step-links">
-      {% if page_obj.has_previous %}
-        <a href="?page=1">1</a>
-        <a href="?page={{ page_obj.previous_page_number }}">&lt;</a>
-      {% endif %}
-
-      <span class="current">
-        {{ page_obj.start_index }}-{{ page_obj.end_index }}
-          из {{ page_obj.paginator.count }}
-      </span>
-
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">&gt;</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
-      {% endif %}
-    </span>
+    {% url 'dispenser:get_ip' 'v6' as ipv6 %}
+    {% bootstrap_button "Получить IPv6-адрес" button_type="link" button_class="btn-outline-primary" href=ipv6 %}
   </div>
 
-  <a href="{% url 'dispenser:get_ip' 'v4' %}">Получить IPv4-адрес</a>
-  <br>
-  <a href="{% url 'dispenser:get_ip' 'v6' %}">Получить IPv6-адрес</a>
+  <div class="container">
+    <table class="table">
+      {% for ip in ip_addresses %}
+        <tr>
+          <td>
+            {{ ip }}
+          </td>
+          <td>
+            выдан {{ ip.claimed_at }}
+          </td>
+          <td>
+            {% url 'dispenser:delete_ip' ip.id as delete_ip %}
+            {% bootstrap_button "Удалить IP" button_type="link" button_class="btn-outline-danger" href=delete_ip %}
+          </td>
+        </tr>
+      {% empty %}
+        У вас пока нет IP-адресов.
+      {% endfor %}
+    <table class="table">
+
+    {% bootstrap_pagination page_obj %}
+  </div>
+
 {% endblock content %}

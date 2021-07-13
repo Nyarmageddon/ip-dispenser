@@ -1,12 +1,55 @@
-<a href="{% url 'dispenser:main' %}">На главную</a>
+{% load django_bootstrap5 %}
 
-{% if user.is_authenticated %}
-  <b>{{ user.username }}</b>
-  <a href="{% url 'dispenser:account' %}">Мой аккаунт</a>
-  <a href="{% url 'dispenser:logout' %}">Выйти</a>
-{% else %}
-  <a href="{% url 'dispenser:login' %}">Войти</a>
-{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IP Dispenser</title>
 
-{% block header %}{% endblock header %}
-{% block content %}{% endblock content %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+</head>
+
+<body>
+
+<div class="container">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+
+      <div id="navbar">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <a class="navbar-brand" href="{% url 'dispenser:main' %}">ID Dispenser</a>
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dispenser:account' %}">
+                  Мой аккаунт
+                </a>
+              </li>
+            <li class="navbar-text">{{ user.username }}</li>
+            <li class="nav-item navbar-right">
+              <a class="nav-link" href="{% url 'dispenser:logout' %}">Выйти</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'dispenser:login' %}">
+                Войти
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>
+
+<div class="container">
+  <p class="lead">
+    <h2 class="display-5">{% block header %}{% endblock header %}</h2>
+  </p>
+</div>
+
+<div class="container">
+  {% block content %}{% endblock content %}
+</div>
+</body>  
+</html>  
