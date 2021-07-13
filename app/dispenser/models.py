@@ -90,9 +90,13 @@ class IPSubnet(models.Model):
         if ip_util.network_protocol(str(self)) != self.protocol:
             raise ValidationError("Указана неправильная версия IP.")
 
+        # Запрет на приватные сети.
+        if ip_util.network_private(str(self)):
+            raise ValidationError("Указана приватная сеть.")
+
         # Запрет на маленькие подсети.
         if self.capacity <= 0:
-            raise ValidationError("Из этой подсети не получится выдать IP.")
+            raise ValidationError("Слишком маленькая подсеть для выдачи IP.")
 
         # Проверка принадлежности шлюза к сети.
         if not ip_util.address_in_net(self.gateway, str(self)):

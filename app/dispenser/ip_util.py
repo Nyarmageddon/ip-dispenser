@@ -41,6 +41,11 @@ def network_valid(network: str) -> bool:
     return True
 
 
+def network_private(network: str) -> bool:
+    """Является ли сеть приватной."""
+    return ip_network(network).is_private
+
+
 def subnet_of(network: str, other: str) -> bool:
     """Является ли первая сеть подсетью второй?"""
     return ip_network(network).subnet_of(ip_network(other))
