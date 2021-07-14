@@ -29,6 +29,11 @@
             <li class="nav-item navbar-right">
               <a class="nav-link" href="{% url 'dispenser:logout' %}">Выйти</a>
             </li>
+            {% if user.is_staff %}
+              <li class="nav-item navbar-right">
+                <a class="nav-link active" href="/admin/">Управление</a>
+              </li>
+            {% endif %}
           {% else %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'dispenser:login' %}">
