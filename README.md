@@ -13,13 +13,18 @@
 * `cp ip_dispenser/settings_local.dist.py ip_dispenser/settings_local.py`
 * отредактировать настройки в `ip_dispenser/settings_local.py`
 * `python manage.py migrate`
-* добавить админ-аккаунт для работы:
-`python manage.py createsuperuser`
+
+... Либо через docker-compose:
+* `git clone https://github.com/Nyarmageddon/ip-dispenser.git .`
+* `cp app/ip_dispenser/settings_local.dist.py app/ip_dispenser/settings_local.py`
+* `sudo docker-compose up`
 
 ### Начало работы
 
-После установки нужно авторизоваться и перейти в админку /admin/, чтобы добавить хотя бы одну подсеть.
-После этого пользователи могут получать IP-адреса из неё в личном кабинете.
+Перед началом нужно добавить админ-аккаунт для работы:
+`python manage.py createsuperuser`
+После этого авторизоваться и перейти в админку /admin/, чтобы добавить хотя бы одну подсеть.
+В результате пользователи могут получать IP-адреса из неё в личном кабинете.
 
 
 IP-адреса выдаются из случайной доступной подсети.
