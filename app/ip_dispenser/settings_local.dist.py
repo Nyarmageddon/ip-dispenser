@@ -1,12 +1,10 @@
 # Локальные переменные, перезаписывающие стандартные из settings.py
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
-SECRET = None
-if SECRET is None:
-    raise RuntimeError()
+SECRET = "YfZuZY2yNe1Be3DUGOkz81uSYA6cdkShmuf9FKgFX93tU6pGVXTTSFtn4E6YiMCa"
 
 STATIC_ROOT = ""
 
@@ -16,7 +14,8 @@ DATABASES = {
         "NAME": "db_name",
         "USER": "user_name",
         "PASSWORD": "password",
-        "HOST": "localhost",
+        # Подключение к docker-compose
+        "HOST": "db",
         "PORT": "3306",
         "OPTIONS": {
             "init_command": "SET default_storage_engine=INNODB",

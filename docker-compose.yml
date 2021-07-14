@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    command: "bash -c 'python app/manage.py migrate && python app/manage.py runserver 0.0.0.0:8000'"
+    volumes:
+      - .:/my_app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+  db:
+    image: mariadb:10.5
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_DATABASE: 'db_name'
+      MYSQL_USER: 'user_name'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_HOST: 'localhost'
+      MYSQL_PORT: 3306
+    restart: always
+    volumes:
+      - ./db_django:/var/lib/mysql
